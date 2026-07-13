@@ -193,13 +193,21 @@ export default function StudentDashboard() {
                     </div>
                   </div>
 
-                  <div className="mt-6 border-t border-slate-800 pt-4">
+                  <div className="mt-6 flex flex-col gap-2 border-t border-slate-800 pt-4 sm:flex-row sm:items-center">
                     <Link
                       href={`/student/result/${assessment.id}?userId=${user.id || user._id}`}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 py-3 font-semibold text-white transition hover:bg-slate-700"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 py-3 text-xs font-semibold text-white transition hover:bg-slate-700"
                     >
-                      <FileSpreadsheet className="h-4 w-4 text-cyan-400" /> View Question Breakdown & Feedback
+                      <FileSpreadsheet className="h-4 w-4 text-cyan-400" /> View Explanations
                     </Link>
+                    {(assessment.assessmentType === "PRACTICE" || (assessment.maxAttempts && assessment.maxAttempts > 1)) && (
+                      <Link
+                        href={`/student/take/${assessment.id}?userId=${user.id || user._id}`}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-500 py-3 text-xs font-bold text-slate-950 transition hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
+                      >
+                        🔄 Retake Practice Test
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

@@ -77,13 +77,23 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
     <main className="min-h-screen bg-slate-950 p-6 pb-20 text-slate-50 md:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Top Navigation */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <Link href="/student" className="flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white">
             <ArrowLeft className="h-4 w-4" /> Back to Dashboard
           </Link>
-          <span className="rounded-full bg-slate-900 px-4 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 border border-slate-800">
-            {assessment.subject}
-          </span>
+          <div className="flex items-center gap-3">
+            {(assessment.assessmentType === "PRACTICE" || (assessment.maxAttempts && assessment.maxAttempts > 1)) && (
+              <Link
+                href={`/student/take/${assessment.id}?userId=${user?.id || user?._id || ""}`}
+                className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
+              >
+                🔄 Retake Assessment
+              </Link>
+            )}
+            <span className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-cyan-400 border border-slate-800">
+              {assessment.subject}
+            </span>
+          </div>
         </div>
 
         {/* Score Summary Card */}
@@ -165,6 +175,20 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
             })}
           </div>
         </section>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-8">
+          <Link href="/student" className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-6 py-3 text-sm font-bold text-slate-300 transition hover:bg-slate-800">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
+          {(assessment.assessmentType === "PRACTICE" || (assessment.maxAttempts && assessment.maxAttempts > 1)) && (
+            <Link
+              href={`/student/take/${assessment.id}?userId=${user?.id || user?._id || ""}`}
+              className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 shadow-xl shadow-cyan-500/20"
+            >
+              🔄 Retake Practice Test Now
+            </Link>
+          )}
+        </div>
       </div>
     </main>
   );
