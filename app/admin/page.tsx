@@ -33,7 +33,8 @@ export default function AdminDashboard() {
 
   // Modals & forms
   const [showAddStudent, setShowAddStudent] = useState(false);
-  const [studentForm, setStudentForm] = useState({ fullName: "", username: "", email: "", phoneNumber: "", password: "Password123!" });
+  const [editUserId, setEditUserId] = useState<string | null>(null);
+  const [studentForm, setStudentForm] = useState({ fullName: "", username: "", email: "", phoneNumber: "", password: "Password123!", role: "STUDENT" });
 
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [subjectForm, setSubjectForm] = useState({ name: "", description: "" });
@@ -117,21 +118,36 @@ export default function AdminDashboard() {
     }
   }
 
-  // Handle student creation
+  // Handle user creation & updating
   async function handleCreateStudent(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/students", {
-      method: "POST",
+    const url = editUserId ? `/api/students/${editUserId}` : "/api/students";
+    const method = editUserId ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(studentForm),
     });
     if (res.ok) {
       setShowAddStudent(false);
-      setStudentForm({ fullName: "", username: "", email: "", phoneNumber: "", password: "Password123!" });
+      setEditUserId(null);
+      setStudentForm({ fullName: "", username: "", email: "", phoneNumber: "", password: "Password123!", role: "STUDENT" });
       fetchAllData();
     } else {
       const err = await res.json();
-      alert(err.message || "Failed to create student");
+      alert(err.message || "Failed to save user");
+    }
+  }
+
+  // Handle user deletion
+  async function handleDeleteUser(id: string) {
+    if (!confirm("Are you sure you want to delete this user account?")) return;
+    const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      fetchAllData();
+    } else {
+      const err = await res.json();
+      alert(err.message || "Failed to delete user");
     }
   }
 
@@ -358,14 +374,18 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">Enrolled Learners</h2>
-                <p className="text-sm text-slate-400">Manage accounts and credentials for students who can take assessments.</p>
+                <h2 className="text-xl font-bold text-white">System Users & Learners</h2>
+                <p className="text-sm text-slate-400">Perform full CRUD operations on student and admin accounts.</p>
               </div>
               <button
-                onClick={() => setShowAddStudent(true)}
+                onClick={() => {
+                  setEditUserId(null);
+                  setStudentForm({ fullName: "", username: "", email: "", phoneNumber: "", password: "Password123!", role: "STUDENT" });
+                  setShowAddStudent(true);
+                }}
                 className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400"
               >
-                <Plus className="h-4 w-4" /> Add Student
+                <Plus className="h-4 w-4" /> Add User
               </button>
             </div>
 
@@ -378,23 +398,57 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4">Email</th>
                     <th className="px-6 py-4">Phone</th>
                     <th className="px-6 py-4">Role</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
                   {students.map((stu) => (
-                    <tr key={stu._id} className="hover:bg-slate-800/40">
+                    <tr key={stu._id || stu.id} className="hover:bg-slate-800/40">
                       <td className="px-6 py-4 font-medium text-white">{stu.fullName}</td>
                       <td className="px-6 py-4 text-cyan-400">@{stu.username}</td>
                       <td className="px-6 py-4">{stu.email}</td>
                       <td className="px-6 py-4">{stu.phoneNumber || "N/A"}</td>
                       <td className="px-6 py-4">
-                        <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">STUDENT</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          stu.role === "ADMIN"
+                            ? "bg-purple-400/10 text-purple-300"
+                            : "bg-cyan-400/10 text-cyan-300"
+                        }`}>
+                          {stu.role || "STUDENT"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setEditUserId(stu._id || stu.id);
+                              setStudentForm({
+                                fullName: stu.fullName || "",
+                                username: stu.username || "",
+                                email: stu.email || "",
+                                phoneNumber: stu.phoneNumber || "",
+                                password: "", // Blank keeps current password
+                                role: stu.role || "STUDENT",
+                              });
+                              setShowAddStudent(true);
+                            }}
+                            className="flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-slate-700"
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(stu._id || stu.id)}
+                            className="flex items-center gap-1 rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-500/20"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {students.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-500">No students found. Click "Add Student" or seed demo data.</td>
+                      <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No users found. Click "Add User" to create one.</td>
                     </tr>
                   )}
                 </tbody>
@@ -601,13 +655,13 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* MODAL: ADD STUDENT */}
+        {/* MODAL: ADD / EDIT USER */}
         {showAddStudent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
             <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 className="text-lg font-bold text-white">Add New Student Account</h3>
-                <button onClick={() => setShowAddStudent(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+                <h3 className="text-lg font-bold text-white">{editUserId ? "Edit User Account" : "Add New User Account"}</h3>
+                <button onClick={() => { setShowAddStudent(false); setEditUserId(null); }} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
               </div>
               <form onSubmit={handleCreateStudent} className="mt-4 space-y-4">
                 <div>
@@ -623,10 +677,21 @@ export default function AdminDashboard() {
                   <input required type="email" value={studentForm.email} onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" placeholder="lawrence@example.com" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-300">Initial Password</label>
-                  <input required value={studentForm.password} onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" />
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Phone Number (Optional)</label>
+                  <input value={studentForm.phoneNumber} onChange={(e) => setStudentForm({ ...studentForm, phoneNumber: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" placeholder="+1234567890" />
                 </div>
-                <button type="submit" className="w-full rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400">Create Account</button>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Account Role</label>
+                  <select value={studentForm.role} onChange={(e) => setStudentForm({ ...studentForm, role: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500">
+                    <option value="STUDENT">STUDENT (Assessment Learner)</option>
+                    <option value="ADMIN">ADMIN (System Administrator)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">{editUserId ? "New Password (Leave blank to keep current)" : "Initial Password"}</label>
+                  <input required={!editUserId} value={studentForm.password} onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" placeholder={editUserId ? "Leave blank to keep current..." : "Password123!"} />
+                </div>
+                <button type="submit" className="w-full rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400">{editUserId ? "Update Account" : "Create Account"}</button>
               </form>
             </div>
           </div>

@@ -6,13 +6,13 @@ import { User } from "@/models/user";
 export async function GET() {
   try {
     await connectToDatabase();
-    const students = await User.find({ role: "STUDENT" })
+    const students = await User.find({})
       .select("-password")
       .sort({ createdAt: -1 });
     return NextResponse.json({ students });
   } catch (error: any) {
     return NextResponse.json(
-      { message: error?.message || "Failed to fetch students" },
+      { message: error?.message || "Failed to fetch users" },
       { status: 500 }
     );
   }
@@ -20,7 +20,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { fullName, username, email, phoneNumber, password, profilePicture } =
+    const { fullName, username, email, phoneNumber, password, role = "STUDENT", profilePicture } =
       await request.json();
 
     if (!fullName || !username || !email || !password) {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       email: email.trim(),
       phoneNumber: phoneNumber?.trim(),
       password: hashedPassword,
-      role: "STUDENT",
+      role: ["ADMIN", "STUDENT"].includes(role) ? role : "STUDENT",
       profilePicture,
     });
 
