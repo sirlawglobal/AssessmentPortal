@@ -801,10 +801,11 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => {
+                              const matchIds = new Set(matchingQuestions.map((q) => q._id));
+                              const otherIds = assessmentForm.selectedQuestionIds.filter((id) => !matchIds.has(id));
                               const shuffled = [...matchingQuestions].sort(() => 0.5 - Math.random());
                               const picked = shuffled.slice(0, randomPickCount).map((q) => q._id);
-                              const ids = new Set([...assessmentForm.selectedQuestionIds, ...picked]);
-                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: Array.from(ids) });
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: [...otherIds, ...picked] });
                             }}
                             className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1 font-bold text-amber-300 transition hover:bg-amber-500/30"
                           >
@@ -813,6 +814,8 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => {
+                              const matchIds = new Set(matchingQuestions.map((q) => q._id));
+                              const otherIds = assessmentForm.selectedQuestionIds.filter((id) => !matchIds.has(id));
                               const topics = Array.from(new Set(matchingQuestions.map((q) => q.topic)));
                               if (topics.length === 0) return;
                               const baseCount = Math.floor(randomPickCount / topics.length);
@@ -824,8 +827,7 @@ export default function AdminDashboard() {
                                 const shuffled = [...topicQs].sort(() => 0.5 - Math.random());
                                 pickedIds.push(...shuffled.slice(0, count).map((q) => q._id));
                               });
-                              const ids = new Set([...assessmentForm.selectedQuestionIds, ...pickedIds]);
-                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: Array.from(ids) });
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: [...otherIds, ...pickedIds] });
                             }}
                             title="Distributes the total number evenly across every topic available in this subject"
                             className="flex items-center gap-1.5 rounded-lg bg-emerald-500/20 px-3 py-1 font-bold text-emerald-300 transition hover:bg-emerald-500/30"
