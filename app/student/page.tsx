@@ -59,9 +59,21 @@ export default function StudentDashboard() {
     return null;
   }
 
-  const pendingAssignments = assignments.filter((a) => ["ASSIGNED", "STARTED"].includes(a.status));
-  const submittedAssignments = assignments.filter((a) => ["SUBMITTED", "MARKED"].includes(a.status));
-  const publishedAssignments = assignments.filter((a) => a.status === "RESULT_PUBLISHED");
+  const pendingAssignments = assignments.filter(
+    (a) =>
+      ["ASSIGNED", "STARTED", "PENDING"].includes(a.status) ||
+      a.assessment?.assessmentType === "PRACTICE" ||
+      (a.assessment?.maxAttempts && a.assessment.maxAttempts > 1)
+  );
+  const submittedAssignments = assignments.filter(
+    (a) =>
+      ["SUBMITTED", "MARKED"].includes(a.status) &&
+      a.assessment?.assessmentType !== "PRACTICE" &&
+      (!a.assessment?.maxAttempts || a.assessment.maxAttempts <= 1)
+  );
+  const publishedAssignments = assignments.filter(
+    (a) => ["RESULT_PUBLISHED", "GRADED"].includes(a.status) || (a.submission && a.assessment?.assessmentType === "PRACTICE")
+  );
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-slate-50 md:p-8">
@@ -119,7 +131,20 @@ export default function StudentDashboard() {
                       href={`/student/take/${assessment.id}?userId=${user.id || user._id}`}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400"
                     >
-                      <PlayCircle className="h-4 w-4" /> Start Assessment
+                      {a.submission || ["GRADED", "RESULT_PUBLISHED", "SUBMITTED"].includes(a.status) ? (
+                        <>
+                          <span>🔄 Retake Assessment</span>
+                          {a.submission && (
+                            <span className="rounded-md bg-slate-950/40 px-2 py-0.5 text-xs font-semibold text-white">
+                              Last: {Math.round((a.submission.totalScore / (a.submission.maxScore || 100)) * 100)}%
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle className="h-4 w-4" /> Start Assessment
+                        </>
+                      )}
                     </Link>
                   </div>
                 </div>
