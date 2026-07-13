@@ -150,14 +150,14 @@ export default function TakeAssessmentPage({ params }: { params: Promise<{ id: s
   return (
     <main className="min-h-screen bg-slate-950 pb-20 text-slate-50">
       {/* Top Sticky Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 px-6 py-4 backdrop-blur shadow-lg">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/95 px-4 py-3 sm:px-6 sm:py-4 backdrop-blur shadow-lg">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wider text-cyan-400 font-semibold">{assessment.subject}</p>
-            <h1 className="text-lg font-bold text-white sm:text-xl">{assessment.title}</h1>
+            <h1 className="text-base font-bold text-white sm:text-xl line-clamp-1">{assessment.title}</h1>
           </div>
-          <div className="flex items-center gap-6">
-            <div className={`flex items-center gap-2 rounded-full px-4 py-2 font-mono text-base font-bold ${
+          <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6">
+            <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 font-mono text-sm sm:text-base font-bold ${
               (timeLeft || 0) < 300 ? "bg-rose-500/20 text-rose-300 animate-pulse border border-rose-500/50" : "bg-slate-950 text-cyan-300 border border-slate-800"
             }`}>
               <Clock className="h-4 w-4" />
@@ -170,7 +170,7 @@ export default function TakeAssessmentPage({ params }: { params: Promise<{ id: s
                 }
               }}
               disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 font-bold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base font-bold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50 shadow-md shadow-cyan-500/20"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Submit Paper
@@ -180,7 +180,7 @@ export default function TakeAssessmentPage({ params }: { params: Promise<{ id: s
       </header>
 
       {/* Main Content: Question List */}
-      <div className="mx-auto mt-8 max-w-5xl space-y-8 px-6">
+      <div className="mx-auto mt-6 sm:mt-8 max-w-5xl space-y-6 sm:space-y-8 px-4 sm:px-6">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-sm text-slate-300">
           <h2 className="font-bold text-white mb-1">Instructions</h2>
           <p>{assessment.instructions || "Answer all questions to the best of your ability. Keep track of the timer at the top right. For theory questions, you may type your response and/or upload a picture of your workings."}</p>

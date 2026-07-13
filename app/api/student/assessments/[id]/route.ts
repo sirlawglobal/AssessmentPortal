@@ -124,17 +124,43 @@ export async function POST(
 
     const finalStatus = shouldAutoGrade ? "GRADED" : "SUBMITTED";
 
+    const existingSub = await Submission.findOne({ assessmentId, userId });
+    const nextAttemptNum = existingSub ? (existingSub.attemptNumber || existingSub.attemptsHistory?.length || 1) + 1 : 1;
+    const currentAttemptRecord = {
+      attemptNumber: nextAttemptNum,
+      totalScore,
+      maxScore: maxScore || assessment.passingScore * 2 || 100,
+      submittedAt: new Date(),
+      status: finalStatus,
+      answers: processedAnswers,
+    };
+
+    let attemptsHistory: any[] = [...(existingSub?.attemptsHistory || [])];
+    if (attemptsHistory.length === 0 && existingSub) {
+      attemptsHistory.push({
+        attemptNumber: 1,
+        totalScore: existingSub.totalScore || 0,
+        maxScore: existingSub.maxScore || 100,
+        submittedAt: existingSub.submittedAt || new Date(),
+        status: existingSub.status || "SUBMITTED",
+        answers: existingSub.answers || [],
+      });
+    }
+    attemptsHistory.push(currentAttemptRecord);
+
     const submission = await Submission.findOneAndUpdate(
       { assessmentId, userId },
       {
         $set: {
           assessmentId,
           userId,
+          attemptNumber: nextAttemptNum,
           answers: processedAnswers,
           totalScore,
           maxScore: maxScore || assessment.passingScore * 2 || 100,
           status: finalStatus,
           submittedAt: new Date(),
+          attemptsHistory,
         },
       },
       { upsert: true, new: true }

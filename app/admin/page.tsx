@@ -79,6 +79,7 @@ export default function AdminDashboard() {
   const [gradeModalAssessment, setGradeModalAssessment] = useState<any | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [selectedAttemptIndex, setSelectedAttemptIndex] = useState<number>(0);
   const [theoryGrades, setTheoryGrades] = useState<any>({});
 
   useEffect(() => {
@@ -283,6 +284,7 @@ export default function AdminDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         submissionId: selectedSubmission.id,
+        attemptNumber: selectedSubmission.attemptsHistory?.[selectedAttemptIndex]?.attemptNumber,
         theoryGrades: gradesArray,
         status,
       }),
@@ -299,30 +301,30 @@ export default function AdminDashboard() {
   if (!ready) return null;
 
   return (
-    <main className="min-h-screen bg-slate-950 p-6 text-slate-50 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-8">
+    <main className="min-h-screen bg-slate-950 p-3 sm:p-6 text-slate-50 md:p-8">
+      <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-slate-800 pb-4 sm:pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-400">Admin Management Portal</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">Assessment Center Dashboard</h1>
+            <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-white">Assessment Center Dashboard</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={fetchAllData}
-              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-800"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </button>
-            <Link href="/" className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800">
+            <Link href="/" className="rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-800">
               Exit Portal
             </Link>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
+        <div className="flex overflow-x-auto sm:flex-wrap gap-2 border-b border-slate-800 pb-4 py-1 scrollbar-none">
           {[
             { id: "students", label: "Students", icon: Users, count: students.length },
             { id: "subjects", label: "Subjects", icon: BookOpen, count: subjects.length },
@@ -335,7 +337,7 @@ export default function AdminDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-semibold transition ${
                   isActive
                     ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
                     : "bg-slate-900/60 text-slate-400 hover:bg-slate-800 hover:text-white"
@@ -1024,15 +1026,23 @@ export default function AdminDashboard() {
                         <div>
                           <p className="font-bold text-white">{sub.student?.fullName || "Student Account"} (@{sub.student?.username || "student"})</p>
                           <p className="text-xs text-slate-400">Submitted: {new Date(sub.submittedAt).toLocaleString()}</p>
-                          <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${sub.status === "RESULT_PUBLISHED" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
-                            {sub.status} • Score: {sub.totalScore} / {sub.maxScore}
-                          </span>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${sub.status === "RESULT_PUBLISHED" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
+                              {sub.status} • Score: {sub.totalScore} / {sub.maxScore}
+                            </span>
+                            <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs font-bold text-purple-300">
+                              Attempts: {sub.attemptsHistory?.length || sub.attemptNumber || 1}
+                            </span>
+                          </div>
                         </div>
                         <button
                           onClick={() => {
                             setSelectedSubmission(sub);
+                            const lastIdx = (sub.attemptsHistory?.length || 1) - 1;
+                            setSelectedAttemptIndex(lastIdx);
+                            const activeAnswers = sub.attemptsHistory?.[lastIdx]?.answers || sub.answers || [];
                             const init: any = {};
-                            sub.answers?.forEach((ans: any) => {
+                            activeAnswers.forEach((ans: any) => {
                               init[ans.questionId] = { marks: ans.marksAwarded || 0, feedback: ans.feedback || "" };
                             });
                             setTheoryGrades(init);
@@ -1053,14 +1063,62 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between rounded-xl bg-slate-950 p-4">
                     <div>
                       <p className="text-base font-bold text-white">{selectedSubmission.student?.fullName} (@{selectedSubmission.student?.username})</p>
-                      <p className="text-xs text-slate-400">Status: {selectedSubmission.status} | Current Total Score: <strong className="text-cyan-400">{selectedSubmission.totalScore} / {selectedSubmission.maxScore}</strong></p>
+                      <p className="text-xs text-slate-400">Status: {selectedSubmission.status} | Best/Latest Total Score: <strong className="text-cyan-400">{selectedSubmission.totalScore} / {selectedSubmission.maxScore}</strong></p>
                     </div>
                     <button onClick={() => setSelectedSubmission(null)} className="rounded-lg border border-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800">Back to List</button>
                   </div>
 
+                  {selectedSubmission.attemptsHistory && selectedSubmission.attemptsHistory.length > 1 && (
+                    <div className="rounded-2xl border border-purple-500/30 bg-purple-950/20 p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Attempt History ({selectedSubmission.attemptsHistory.length} Attempts)</span>
+                        <span className="text-xs text-slate-400">Click any attempt to inspect student answers & scores</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {selectedSubmission.attemptsHistory.map((att: any, idx: number) => {
+                          const isCurrent = idx === selectedAttemptIndex;
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setSelectedAttemptIndex(idx);
+                                const activeAnswers = att.answers || [];
+                                const init: any = {};
+                                activeAnswers.forEach((ans: any) => {
+                                  init[ans.questionId] = { marks: ans.marksAwarded || 0, feedback: ans.feedback || "" };
+                                });
+                                setTheoryGrades(init);
+                              }}
+                              className={`rounded-xl px-3.5 py-2 text-xs font-bold transition flex items-center gap-2 border ${
+                                isCurrent
+                                  ? "bg-purple-500 text-white border-purple-400 shadow-lg shadow-purple-500/20"
+                                  : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+                              }`}
+                            >
+                              <span>Attempt #{att.attemptNumber || idx + 1}</span>
+                              <span className={`rounded px-1.5 py-0.5 text-[10px] ${isCurrent ? "bg-purple-950/60 text-purple-200" : "bg-slate-800 text-cyan-400"}`}>
+                                {att.totalScore}/{att.maxScore}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-4">
-                    <h5 className="text-sm font-bold uppercase tracking-wider text-cyan-400">Questions & Answers</h5>
-                    {selectedSubmission.answers?.map((ans: any, idx: number) => {
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-sm font-bold uppercase tracking-wider text-cyan-400">
+                        Questions & Answers {selectedSubmission.attemptsHistory?.length ? `(Showing Attempt #${selectedSubmission.attemptsHistory[selectedAttemptIndex]?.attemptNumber || selectedAttemptIndex + 1})` : ""}
+                      </h5>
+                      {selectedSubmission.attemptsHistory?.[selectedAttemptIndex] && (
+                        <span className="text-xs font-semibold text-slate-400">
+                          Attempt Submitted: {new Date(selectedSubmission.attemptsHistory[selectedAttemptIndex].submittedAt || selectedSubmission.submittedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    {(selectedSubmission.attemptsHistory?.[selectedAttemptIndex]?.answers || selectedSubmission.answers)?.map((ans: any, idx: number) => {
                       const q = ans.questionDetails || {};
                       return (
                         <div key={idx} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 space-y-3">

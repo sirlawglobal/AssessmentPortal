@@ -76,24 +76,24 @@ export default function StudentDashboard() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-950 p-6 text-slate-50 md:p-8">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <main className="min-h-screen bg-slate-950 p-4 sm:p-6 text-slate-50 md:p-8">
+      <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-4 border-b border-slate-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-400">Student Portal</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">Welcome back, {user.fullName}</h1>
-            <p className="text-sm text-slate-400">Review your assigned assessments, submit answers, and check your published grades.</p>
+            <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-white">Welcome back, {user.fullName}</h1>
+            <p className="text-xs sm:text-sm text-slate-400">Review your assigned assessments, submit answers, and check your published grades.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={() => fetchAssignments(user.id || user._id)}
-              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-800"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </button>
-            <Link href="/" className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800">
+            <Link href="/" className="rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-800">
               Sign Out
             </Link>
           </div>

@@ -1,74 +1,45 @@
 import Link from "next/link";
-import { BookOpen, ShieldCheck, Sparkles, Users } from "lucide-react";
-
-const features = [
-  {
-    title: "Admin-led student management",
-    description: "Create learners, manage access, reset credentials, and control assessment visibility.",
-  },
-  {
-    title: "Formal and practice assessments",
-    description: "Support MCQ and theory workflows with configurable timers, attempts, and result release modes.",
-  },
-  {
-    title: "Production-ready architecture",
-    description: "MongoDB-backed data model, reusable UI, and a scalable structure for future expansions.",
-  },
-];
+import { Sparkles, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50">
-      <section className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-20 lg:px-8">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-sm text-cyan-200">
-              <Sparkles className="h-4 w-4" />
-              STEM tutorial assessment platform
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-                Deliver polished assessments for every learner.
-              </h1>
-              <p className="max-w-2xl text-lg text-slate-300">
-                Built for a STEM tutorial center, this platform combines secure admin workflows,
-                question management, assignment controls, and result publishing in one modern dashboard.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/login" className="rounded-full bg-cyan-500 px-5 py-3 font-medium text-slate-950 transition hover:bg-cyan-400">
-                Open portal
-              </Link>
-              <Link href="/seed" className="rounded-full border border-slate-700 px-5 py-3 font-medium text-slate-100 transition hover:bg-slate-900">
-                Seed demo data
-              </Link>
-            </div>
-          </div>
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-cyan-950/20">
-            <div className="flex items-center gap-3 text-cyan-300">
-              <ShieldCheck className="h-5 w-5" />
-              <span className="font-medium">Admin-managed access</span>
-            </div>
-            <div className="mt-4 flex items-center gap-3 text-slate-300">
-              <Users className="h-5 w-5" />
-              <span>Students only see assessments assigned to them.</span>
-            </div>
-            <div className="mt-4 flex items-center gap-3 text-slate-300">
-              <BookOpen className="h-5 w-5" />
-              <span>Question bank, MCQ grading, theory uploads, and results release included.</span>
-            </div>
-          </div>
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-950 px-6 py-16 text-slate-50">
+      {/* Subtle Background Glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[450px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-cyan-500/15 via-purple-500/15 to-transparent blur-3xl" />
+
+      <section className="mx-auto flex max-w-3xl flex-col items-center text-center">
+        {/* Sleek Badge */}
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-300 backdrop-blur-md">
+          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+          STEM Tutorial Assessment Center
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {features.map((feature) => (
-            <article key={feature.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-              <h2 className="text-lg font-semibold text-white">{feature.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-300">{feature.description}</p>
-            </article>
-          ))}
+        {/* Headline */}
+        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl sm:leading-tight">
+          Next-Generation <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Assessment & Testing</span> Portal
+        </h1>
+
+        {/* Minimal Subtitle */}
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+          Secure, timed formal examinations and self-paced practice quizzes with instant automated grading and tutor theory reviews.
+        </p>
+
+        {/* Call to Action Button */}
+        <div className="mt-8 flex items-center justify-center">
+          <Link
+            href="/login"
+            className="group flex items-center gap-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-cyan-500/30 active:scale-95"
+          >
+            <span>Open Portal</span>
+            <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
+
+      {/* Minimal Footer */}
+      <footer className="absolute bottom-6 text-xs text-slate-500">
+        &copy; {new Date().getFullYear()} STEM Assessment Portal. All rights reserved.
+      </footer>
     </main>
   );
 }
