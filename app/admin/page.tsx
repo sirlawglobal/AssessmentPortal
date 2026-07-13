@@ -67,6 +67,8 @@ export default function AdminDashboard() {
     showCorrectAnswers: true,
     selectedQuestionIds: [] as string[],
   });
+  const [assessmentTopicFilter, setAssessmentTopicFilter] = useState("All");
+  const [randomPickCount, setRandomPickCount] = useState(20);
 
   const [assignModalAssessment, setAssignModalAssessment] = useState<any | null>(null);
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
@@ -716,24 +718,158 @@ export default function AdminDashboard() {
                     </label>
                   </div>
                 </div>
-                <div className="space-y-2 border-t border-slate-800/80 pt-3">
-                  <p className="text-xs font-semibold uppercase text-cyan-400">Select Questions from Bank ({assessmentForm.selectedQuestionIds.length} selected)</p>
-                  <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2">
-                    {questions.filter((q) => q.subject === assessmentForm.subject || assessmentForm.subject === "All").map((q) => {
-                      const isSelected = assessmentForm.selectedQuestionIds.includes(q._id);
-                      return (
-                        <div key={q._id} onClick={() => {
-                          const next = isSelected
-                            ? assessmentForm.selectedQuestionIds.filter((id) => id !== q._id)
-                            : [...assessmentForm.selectedQuestionIds, q._id];
-                          setAssessmentForm({ ...assessmentForm, selectedQuestionIds: next });
-                        }} className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs transition ${isSelected ? "bg-cyan-500/20 border border-cyan-500/50 text-white" : "hover:bg-slate-900 text-slate-400"}`}>
-                          <span><strong className="text-cyan-400">[{q.type}]</strong> {q.question.substring(0, 70)}...</span>
-                          <span className="font-bold text-slate-300">{q.marks}m</span>
-                        </div>
-                      );
-                    })}
+                <div className="space-y-3 border-t border-slate-800/80 pt-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase text-cyan-400">Select Questions from Bank ({assessmentForm.selectedQuestionIds.length} selected)</p>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={assessmentTopicFilter}
+                        onChange={(e) => setAssessmentTopicFilter(e.target.value)}
+                        className="rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-white outline-none focus:border-cyan-500"
+                      >
+                        <option value="All">All Topics</option>
+                        {Array.from(
+                          new Set(
+                            questions
+                              .filter((q) => assessmentForm.subject === "All" || q.subject === assessmentForm.subject)
+                              .map((q) => q.topic)
+                          )
+                        ).map((top) => (
+                          <option key={top} value={top}>
+                            {top}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
+                  {/* Bulk & Smart Selection Bar */}
+                  {(() => {
+                    const matchingQuestions = questions.filter(
+                      (q) =>
+                        (assessmentForm.subject === "All" || q.subject === assessmentForm.subject) &&
+                        (assessmentTopicFilter === "All" || q.topic === assessmentTopicFilter)
+                    );
+                    return (
+                      <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 p-3 space-y-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className="font-semibold text-slate-400">Quick Select:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const ids = new Set([
+                                ...assessmentForm.selectedQuestionIds,
+                                ...matchingQuestions.map((q) => q._id),
+                              ]);
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: Array.from(ids) });
+                            }}
+                            className="rounded-lg bg-cyan-500/20 px-2.5 py-1 font-bold text-cyan-300 transition hover:bg-cyan-500/30"
+                          >
+                            ⚡ Select All Filtered ({matchingQuestions.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const matchIds = new Set(matchingQuestions.map((q) => q._id));
+                              const filteredIds = assessmentForm.selectedQuestionIds.filter((id) => !matchIds.has(id));
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: filteredIds });
+                            }}
+                            className="rounded-lg bg-red-500/10 px-2.5 py-1 font-bold text-red-400 transition hover:bg-red-500/20"
+                          >
+                            🗑️ Deselect Filtered
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAssessmentForm({ ...assessmentForm, selectedQuestionIds: [] })}
+                            className="rounded-lg bg-slate-800 px-2.5 py-1 font-semibold text-slate-300 hover:bg-slate-700"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 border-t border-slate-800/60 pt-2 text-xs">
+                          <span className="font-semibold text-slate-400">Smart Generator:</span>
+                          <span className="text-slate-400">Auto-Pick</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={matchingQuestions.length || 1}
+                            value={randomPickCount}
+                            onChange={(e) => setRandomPickCount(Number(e.target.value))}
+                            className="w-16 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-center font-bold text-white outline-none focus:border-cyan-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const shuffled = [...matchingQuestions].sort(() => 0.5 - Math.random());
+                              const picked = shuffled.slice(0, randomPickCount).map((q) => q._id);
+                              const ids = new Set([...assessmentForm.selectedQuestionIds, ...picked]);
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: Array.from(ids) });
+                            }}
+                            className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1 font-bold text-amber-300 transition hover:bg-amber-500/30"
+                          >
+                            🎲 Pick Random
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const topics = Array.from(new Set(matchingQuestions.map((q) => q.topic)));
+                              if (topics.length === 0) return;
+                              const baseCount = Math.floor(randomPickCount / topics.length);
+                              const remainder = randomPickCount % topics.length;
+                              let pickedIds: string[] = [];
+                              topics.forEach((top, idx) => {
+                                const topicQs = matchingQuestions.filter((q) => q.topic === top);
+                                const count = baseCount + (idx < remainder ? 1 : 0);
+                                const shuffled = [...topicQs].sort(() => 0.5 - Math.random());
+                                pickedIds.push(...shuffled.slice(0, count).map((q) => q._id));
+                              });
+                              const ids = new Set([...assessmentForm.selectedQuestionIds, ...pickedIds]);
+                              setAssessmentForm({ ...assessmentForm, selectedQuestionIds: Array.from(ids) });
+                            }}
+                            title="Distributes the total number evenly across every topic available in this subject"
+                            className="flex items-center gap-1.5 rounded-lg bg-emerald-500/20 px-3 py-1 font-bold text-emerald-300 transition hover:bg-emerald-500/30"
+                          >
+                            ⚖️ Balanced Pick Across All Topics
+                          </button>
+                        </div>
+
+                        <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-2 space-y-1.5">
+                          {matchingQuestions.map((q) => {
+                            const isSelected = assessmentForm.selectedQuestionIds.includes(q._id);
+                            return (
+                              <div
+                                key={q._id}
+                                onClick={() => {
+                                  const next = isSelected
+                                    ? assessmentForm.selectedQuestionIds.filter((id) => id !== q._id)
+                                    : [...assessmentForm.selectedQuestionIds, q._id];
+                                  setAssessmentForm({ ...assessmentForm, selectedQuestionIds: next });
+                                }}
+                                className={`flex cursor-pointer items-center justify-between rounded-lg p-2 text-xs transition ${
+                                  isSelected
+                                    ? "bg-cyan-500/20 border border-cyan-500/50 text-white"
+                                    : "hover:bg-slate-900 text-slate-400"
+                                }`}
+                              >
+                                <span className="truncate pr-2">
+                                  <strong className="text-cyan-400">[{q.type}]</strong>{" "}
+                                  <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300 mr-1.5">
+                                    {q.topic}
+                                  </span>
+                                  {q.question.substring(0, 65)}...
+                                </span>
+                                <span className="shrink-0 font-bold text-slate-300">{q.marks}m</span>
+                              </div>
+                            );
+                          })}
+                          {matchingQuestions.length === 0 && (
+                            <p className="py-4 text-center text-xs text-slate-500">No questions found for this subject/topic filter.</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button type="submit" className="w-full rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400">Publish Assessment</button>
               </form>
