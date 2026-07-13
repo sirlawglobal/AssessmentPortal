@@ -84,7 +84,7 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
           <div className="flex items-center gap-3">
             {(assessment.assessmentType === "PRACTICE" || (assessment.maxAttempts && assessment.maxAttempts > 1)) && (
               <Link
-                href={`/student/take/${assessment.id}?userId=${user?.id || user?._id || ""}`}
+                href={`/student/take/${assessment.id}?userId=${userId || ""}`}
                 className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-400 shadow-lg shadow-cyan-500/20"
               >
                 🔄 Retake Assessment
@@ -182,7 +182,7 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
           </Link>
           {(assessment.assessmentType === "PRACTICE" || (assessment.maxAttempts && assessment.maxAttempts > 1)) && (
             <Link
-              href={`/student/take/${assessment.id}?userId=${user?.id || user?._id || ""}`}
+              href={`/student/take/${assessment.id}?userId=${userId || ""}`}
               className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 shadow-xl shadow-cyan-500/20"
             >
               🔄 Retake Practice Test Now
