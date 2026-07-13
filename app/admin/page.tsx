@@ -61,8 +61,10 @@ export default function AdminDashboard() {
     duration: 30,
     passingScore: 50,
     assessmentType: "FORMAL",
+    maxAttempts: 1,
     theoryEnabled: false,
     resultReleaseMode: "IMMEDIATE",
+    showCorrectAnswers: true,
     selectedQuestionIds: [] as string[],
   });
 
@@ -682,11 +684,37 @@ export default function AdminDashboard() {
                     <input type="number" required value={assessmentForm.passingScore} onChange={(e) => setAssessmentForm({ ...assessmentForm, passingScore: Number(e.target.value) })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" />
                   </div>
                 </div>
-                <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
-                  <input type="checkbox" id="theoryEnabled" checked={assessmentForm.theoryEnabled} onChange={(e) => setAssessmentForm({ ...assessmentForm, theoryEnabled: e.target.checked })} className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-cyan-500" />
-                  <label htmlFor="theoryEnabled" className="text-sm font-medium text-slate-300">
-                    Enable Theory / Diagram File Uploads for this assessment
-                  </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-300">Assessment Mode</label>
+                    <select value={assessmentForm.assessmentType} onChange={(e) => setAssessmentForm({ ...assessmentForm, assessmentType: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500">
+                      <option value="FORMAL">Formal / Mock Test (Strict & Timed)</option>
+                      <option value="PRACTICE">Practice Test (Revision & Self-Study)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-300">Max Attempts Allowed</label>
+                    <select value={assessmentForm.maxAttempts} onChange={(e) => setAssessmentForm({ ...assessmentForm, maxAttempts: Number(e.target.value) })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500">
+                      <option value={1}>1 Attempt Only (Standard Exam)</option>
+                      <option value={3}>3 Attempts</option>
+                      <option value={5}>5 Attempts</option>
+                      <option value={999}>Unlimited Attempts (Practice Mode)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" id="showCorrectAnswers" checked={assessmentForm.showCorrectAnswers} onChange={(e) => setAssessmentForm({ ...assessmentForm, showCorrectAnswers: e.target.checked })} className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-cyan-500" />
+                    <label htmlFor="showCorrectAnswers" className="text-sm font-medium text-slate-300">
+                      Show Correct Answers & Explanations to student right after submitting
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3 border-t border-slate-800/80 pt-3">
+                    <input type="checkbox" id="theoryEnabled" checked={assessmentForm.theoryEnabled} onChange={(e) => setAssessmentForm({ ...assessmentForm, theoryEnabled: e.target.checked })} className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-cyan-500" />
+                    <label htmlFor="theoryEnabled" className="text-sm font-medium text-slate-300">
+                      Enable Theory / Diagram File Uploads for this assessment
+                    </label>
+                  </div>
                 </div>
                 <div className="space-y-2 border-t border-slate-800/80 pt-3">
                   <p className="text-xs font-semibold uppercase text-cyan-400">Select Questions from Bank ({assessmentForm.selectedQuestionIds.length} selected)</p>
