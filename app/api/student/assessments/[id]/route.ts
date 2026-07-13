@@ -117,6 +117,13 @@ export async function POST(
       };
     });
 
+    const shouldAutoGrade =
+      assessment.assessmentType === "PRACTICE" ||
+      !assessment.theoryEnabled ||
+      questions.every((q: any) => q.type === "MCQ");
+
+    const finalStatus = shouldAutoGrade ? "GRADED" : "SUBMITTED";
+
     const submission = await Submission.findOneAndUpdate(
       { assessmentId, userId },
       {
@@ -126,7 +133,7 @@ export async function POST(
           answers: processedAnswers,
           totalScore,
           maxScore: maxScore || assessment.passingScore * 2 || 100,
-          status: "SUBMITTED",
+          status: finalStatus,
           submittedAt: new Date(),
         },
       },
@@ -135,10 +142,10 @@ export async function POST(
 
     await AssessmentAssignment.findOneAndUpdate(
       { assessmentId, userId },
-      { status: "SUBMITTED" }
+      { status: finalStatus }
     );
 
-    return NextResponse.json({ message: "Submitted successfully", submission }, { status: 201 });
+    return NextResponse.json({ message: "Submitted successfully", submission, autoGraded: shouldAutoGrade }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
       { message: error?.message || "Failed to submit assessment" },

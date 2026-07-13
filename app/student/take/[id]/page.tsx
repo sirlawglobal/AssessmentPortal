@@ -109,7 +109,12 @@ export default function TakeAssessmentPage({ params }: { params: Promise<{ id: s
         }),
       });
       if (res.ok) {
-        router.push("/student");
+        const data = await res.json();
+        if (data.autoGraded || data.submission?.status === "GRADED") {
+          router.push(`/student/result/${assessmentId}?userId=${userId}`);
+        } else {
+          router.push("/student");
+        }
       } else {
         const err = await res.json();
         alert(err.message || "Failed to submit assessment");

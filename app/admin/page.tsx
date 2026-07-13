@@ -15,6 +15,8 @@ import {
   FileText,
   Award,
   RefreshCw,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -37,6 +39,7 @@ export default function AdminDashboard() {
   const [subjectForm, setSubjectForm] = useState({ name: "", description: "" });
 
   const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [editQuestionId, setEditQuestionId] = useState<string | null>(null);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [questionForm, setQuestionForm] = useState({
     type: "MCQ",
@@ -149,14 +152,16 @@ export default function AdminDashboard() {
     }
   }
 
-  // Handle question creation
+  // Handle question creation & update
   async function handleCreateQuestion(e: React.FormEvent) {
     e.preventDefault();
     const options = questionForm.type === "MCQ"
-      ? [questionForm.option1, questionForm.option2, questionForm.option3, questionForm.option4].filter((o) => o.trim())
+      ? [questionForm.option1, questionForm.option2, questionForm.option3, questionForm.option4].filter((o) => o?.trim())
       : [];
-    const res = await fetch("/api/questions", {
-      method: "POST",
+    const url = editQuestionId ? `/api/questions/${editQuestionId}` : "/api/questions";
+    const method = editQuestionId ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...questionForm,
@@ -165,10 +170,35 @@ export default function AdminDashboard() {
     });
     if (res.ok) {
       setShowAddQuestion(false);
+      setEditQuestionId(null);
       fetchAllData();
     } else {
       const err = await res.json();
-      alert(err.message || "Failed to create question");
+      alert(err.message || "Failed to save question");
+    }
+  }
+
+  // Handle question deletion
+  async function handleDeleteQuestion(id: string) {
+    if (!confirm("Are you sure you want to delete this question from the bank?")) return;
+    const res = await fetch(`/api/questions/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      fetchAllData();
+    } else {
+      const err = await res.json();
+      alert(err.message || "Failed to delete question");
+    }
+  }
+
+  // Handle assessment deletion
+  async function handleDeleteAssessment(id: string, title: string) {
+    if (!confirm(`Are you sure you want to permanently delete assessment "${title}" along with all student submissions/assignments?`)) return;
+    const res = await fetch(`/api/assessments/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      fetchAllData();
+    } else {
+      const err = await res.json();
+      alert(err.message || "Failed to delete assessment");
     }
   }
 
@@ -417,7 +447,24 @@ export default function AdminDashboard() {
                   <Upload className="h-4 w-4" /> Bulk Import (CSV)
                 </button>
                 <button
-                  onClick={() => setShowAddQuestion(true)}
+                  onClick={() => {
+                    setEditQuestionId(null);
+                    setQuestionForm({
+                      type: "MCQ",
+                      subject: "Mathematics",
+                      topic: "General",
+                      difficulty: "Medium",
+                      question: "",
+                      option1: "",
+                      option2: "",
+                      option3: "",
+                      option4: "",
+                      correctAnswer: 0,
+                      marks: 5,
+                      explanation: "",
+                    });
+                    setShowAddQuestion(true);
+                  }}
                   className="flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400"
                 >
                   <Plus className="h-4 w-4" /> Create Question
@@ -436,7 +483,38 @@ export default function AdminDashboard() {
                       <span className="rounded-md bg-slate-800 px-2.5 py-1 text-slate-300">{q.subject} • {q.topic}</span>
                       <span className="rounded-md bg-slate-800 px-2.5 py-1 text-amber-300">{q.difficulty}</span>
                     </div>
-                    <span className="text-sm font-bold text-cyan-400">{q.marks} Marks</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-cyan-400">{q.marks} Marks</span>
+                      <button
+                        onClick={() => {
+                          setEditQuestionId(q._id);
+                          setQuestionForm({
+                            type: q.type || "MCQ",
+                            subject: q.subject || "Mathematics",
+                            topic: q.topic || "General",
+                            difficulty: q.difficulty || "Medium",
+                            question: q.question || "",
+                            option1: q.options?.[0] || "",
+                            option2: q.options?.[1] || "",
+                            option3: q.options?.[2] || "",
+                            option4: q.options?.[3] || "",
+                            correctAnswer: Number(q.correctAnswer) || 0,
+                            marks: Number(q.marks) || 5,
+                            explanation: q.explanation || "",
+                          });
+                          setShowAddQuestion(true);
+                        }}
+                        className="flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-cyan-300 hover:bg-slate-700"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQuestion(q._id)}
+                        className="flex items-center gap-1 rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-500/20"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-3 text-base font-medium text-white">{q.question}</p>
                   {q.type === "MCQ" && q.options?.length > 0 && (
@@ -503,6 +581,13 @@ export default function AdminDashboard() {
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-cyan-500/20 px-4 py-2.5 text-sm font-bold text-cyan-300 transition hover:bg-cyan-500/30"
                     >
                       <Award className="h-4 w-4" /> Grade & Review
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAssessment(a.id || a._id, a.title)}
+                      className="flex items-center justify-center rounded-xl bg-rose-500/10 px-3.5 py-2.5 text-rose-400 transition hover:bg-rose-500/20"
+                      title="Delete Assessment"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -573,8 +658,8 @@ export default function AdminDashboard() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
             <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 className="text-lg font-bold text-white">Create New Question</h3>
-                <button onClick={() => setShowAddQuestion(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
+                <h3 className="text-lg font-bold text-white">{editQuestionId ? "Edit Question" : "Create New Question"}</h3>
+                <button onClick={() => { setShowAddQuestion(false); setEditQuestionId(null); }} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
               </div>
               <form onSubmit={handleCreateQuestion} className="mt-4 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -630,7 +715,7 @@ export default function AdminDashboard() {
                     <input value={questionForm.explanation} onChange={(e) => setQuestionForm({ ...questionForm, explanation: e.target.value })} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-500" placeholder="Brief rationale..." />
                   </div>
                 </div>
-                <button type="submit" className="w-full rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400">Add to Bank</button>
+                <button type="submit" className="w-full rounded-xl bg-cyan-500 py-3 font-bold text-slate-950 transition hover:bg-cyan-400">{editQuestionId ? "Save Changes" : "Add to Bank"}</button>
               </form>
             </div>
           </div>
