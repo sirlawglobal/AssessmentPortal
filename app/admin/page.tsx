@@ -53,7 +53,7 @@ export default function AdminDashboard() {
     option3: "",
     option4: "",
     correctAnswer: 0,
-    marks: 5,
+    marks: 1,
     explanation: "",
   });
   const [csvInput, setCsvInput] = useState("");
@@ -516,7 +516,7 @@ export default function AdminDashboard() {
                       option3: "",
                       option4: "",
                       correctAnswer: 0,
-                      marks: 5,
+                      marks: 1,
                       explanation: "",
                     });
                     setShowAddQuestion(true);
@@ -555,7 +555,7 @@ export default function AdminDashboard() {
                             option3: q.options?.[2] || "",
                             option4: q.options?.[3] || "",
                             correctAnswer: Number(q.correctAnswer) || 0,
-                            marks: Number(q.marks) || 5,
+                            marks: Number(q.marks) || 1,
                             explanation: q.explanation || "",
                           });
                           setShowAddQuestion(true);

@@ -20,6 +20,17 @@ export async function GET(
       return NextResponse.json({ message: "Assessment not found" }, { status: 404 });
     }
 
+    let submission = null;
+    if (userId) {
+      submission = await Submission.findOne({ assessmentId, userId }).lean();
+    }
+
+    const viewResult = searchParams.get("viewResult") === "true";
+    const showExplanations =
+      viewResult &&
+      submission &&
+      (assessment.showCorrectAnswers || assessment.assessmentType === "PRACTICE");
+
     let questions = [];
     if (assessment.questionIds && assessment.questionIds.length > 0) {
       questions = await Question.find({ _id: { $in: assessment.questionIds } }).lean();
@@ -36,12 +47,13 @@ export async function GET(
       question: q.question,
       options: q.options,
       marks: q.marks,
+      ...(showExplanations
+        ? {
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+          }
+        : {}),
     }));
-
-    let submission = null;
-    if (userId) {
-      submission = await Submission.findOne({ assessmentId, userId }).lean();
-    }
 
     return NextResponse.json({
       assessment: { ...assessment, id: assessment._id?.toString() },

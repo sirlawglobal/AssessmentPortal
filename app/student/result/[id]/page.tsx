@@ -36,7 +36,7 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
   async function fetchResultData() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/student/assessments/${assessmentId}?userId=${userId}`);
+      const res = await fetch(`/api/student/assessments/${assessmentId}?userId=${userId}&viewResult=true`);
       const data = await res.json();
       if (data.assessment) {
         setAssessment(data.assessment);
@@ -141,10 +141,15 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
                       <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-sm">
                         <span className="text-slate-400">Your Choice:</span> <strong className="text-white">{ans.mcqChoice !== undefined && ans.mcqChoice !== null ? `${ans.mcqChoice + 1}. ${q.options?.[ans.mcqChoice] || ""}` : "No answer selected"}</strong>
                       </div>
-                      {assessment.showCorrectAnswers && q.correctAnswer !== undefined && (
+                      {(assessment.showCorrectAnswers || assessment.assessmentType === "PRACTICE") && q.correctAnswer !== undefined && (
                         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200">
                           <strong>Correct Answer:</strong> {Number(q.correctAnswer) + 1}. {q.options?.[Number(q.correctAnswer)] || ""}
-                          {q.explanation && <p className="mt-2 text-xs text-emerald-300/80 italic">💡 Explanation: {q.explanation}</p>}
+                          {q.explanation && (
+                            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-slate-950/60 p-3.5 text-xs text-emerald-200 shadow-inner">
+                              <span className="font-bold flex items-center gap-1.5 text-emerald-300"><HelpCircle className="h-4 w-4 shrink-0 text-emerald-400" /> Explanation / Key Takeaway:</span>
+                              <p className="mt-1 leading-relaxed text-slate-200">{q.explanation}</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -159,6 +164,13 @@ export default function StudentResultPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 text-xs">
                           <span className="flex items-center gap-2 font-medium text-cyan-300"><FileText className="h-4 w-4" /> Attached Diagram/File</span>
                           <a href={ans.theoryFileUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-white">View Uploaded Sheet</a>
+                        </div>
+                      )}
+
+                      {(assessment.showCorrectAnswers || assessment.assessmentType === "PRACTICE") && q.explanation && (
+                        <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4 text-sm text-purple-200">
+                          <strong className="flex items-center gap-1.5 text-purple-300"><HelpCircle className="h-4 w-4 shrink-0 text-purple-400" /> Model Solution / Explanation:</strong>
+                          <p className="mt-1.5 leading-relaxed text-slate-200">{q.explanation}</p>
                         </div>
                       )}
 
